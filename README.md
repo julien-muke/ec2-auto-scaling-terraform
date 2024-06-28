@@ -5,6 +5,8 @@
 
 AWS Auto Scaling groups (ASGs) let you easily scale and manage a collection of EC2 instances that run the same instance configuration. You can then manage the number of running instances manually or dynamically, allowing you to lower operating costs. Since ASGs are dynamic, Terraform does not manage the underlying instances directly because every scaling action would introduce state drift. You can use Terraform lifecycle arguments to avoid drift or accidental changes.
 
+Terraform is an infrastructure as code (Iac) tool that automates infrastructure provisioning. It is the most popular and offers support for multiple clouds.
+
 In this tutorial, you will use Terraform to provision and manage an Auto Scaling group and learn how Terraform configuration supports the dynamic aspects of the resource. You will launch an ASG with traffic managed by a load balancer and define a scaling policy to automatically modify the number of instances running in the group. You will learn how to use lifecycle arguments to avoid unwanted scaling of your ASG.
 
 
@@ -17,15 +19,9 @@ In this tutorial, you will use Terraform to provision and manage an Auto Scaling
 
 The procedure for deploying this architecture on AWS consists of the following steps:
 
-Step 1.
-
-Step 2.
-
-Step 3.
-
-Step 4.
-
-Step 5. 
+=> Create a VPC, Subnets, and Configure network requirements.
+=> Create EC2 instances with Auto scaling group and Launch template.
+=> Create a Load balancer with a target group to the Auto Scaling group.
 
 
 ## 📝 Prerequisites
@@ -41,13 +37,31 @@ For this tutorial, you will need:
 * The [AWS CLI](https://aws.amazon.com/cli/)
 
 
+## ➡️ Step 1 - Initialise Project
+
+Create an empty project directory and create a file called `main.tf` within it.
+
+Firstly we need to add information about the provider (Here, we will be using AWS Provider). We will also configure AWS credentials, so we could provision resources in the AWS cloud.
 
 
+```bash
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
 
-
-
-## ➡️ Step 1 - 
-
+# Configure the AWS Provider
+provider "aws" {
+  region                   = "us-east-1"
+  shared_config_files      = ["/Path/to/.aws/config"]
+  shared_credentials_files = ["/Path/to/.aws/credentials"]
+  profile                  = "PROFILE"
+}
+```
 
 
 
