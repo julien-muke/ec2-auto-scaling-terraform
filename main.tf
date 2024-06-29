@@ -1,5 +1,5 @@
 
-# terraform apply -var-file="app.tfvars" -var="createdby=e2esa"
+# terraform apply -var-file="app.tfvars" -var="createdby=jm"
 
 locals {
   tags = {
