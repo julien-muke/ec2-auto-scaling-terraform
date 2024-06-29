@@ -45,6 +45,7 @@ Firstly we need to add information about the provider (Here, we will be using AW
 
 <details>
 <summary><code>main.tf</code></summary>
+
 ```bash
 terraform {
   required_providers {
