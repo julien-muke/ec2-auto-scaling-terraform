@@ -65,18 +65,3 @@ provider "aws" {
 }
 ```
 </details>
-
-
-
-
-
-
-
-
-## 💰 Cost
-
-All services used are eligible for the AWS Free Tier. However, charges will incur at some point so it's recommended that you shut down resources after completing this tutorial.
-
-
-## Conclusion
-
