@@ -19,9 +19,9 @@ In this tutorial, you will use Terraform to provision and manage an Auto Scaling
 
 The procedure for deploying this architecture on AWS consists of the following steps:
 
-=> Create a VPC, Subnets, and Configure network requirements.
-=> Create EC2 instances with Auto scaling group and Launch template.
-=> Create a Load balancer with a target group to the Auto Scaling group.
+* Create a VPC, Subnets, and Configure network requirements.
+* Create EC2 instances with Auto scaling group and Launch template.
+* Create a Load balancer with a target group to the Auto Scaling group.
 
 
 ## 📝 Prerequisites
@@ -43,7 +43,8 @@ Create an empty project directory and create a file called `main.tf` within it.
 
 Firstly we need to add information about the provider (Here, we will be using AWS Provider). We will also configure AWS credentials, so we could provision resources in the AWS cloud.
 
-
+<details>
+<summary><code>main.tf</code></summary>
 ```bash
 terraform {
   required_providers {
@@ -62,7 +63,7 @@ provider "aws" {
   profile                  = "PROFILE"
 }
 ```
-
+</details>
 
 
 
