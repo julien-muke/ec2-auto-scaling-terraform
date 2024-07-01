@@ -36,47 +36,167 @@ For this tutorial, you will need:
     
 * The [AWS CLI](https://aws.amazon.com/cli/)
 
+##  	:octocat: Clone example repository
 
-## ➡️ Step 1 - Initialise Project
+Clone the [example repository](https://github.com/julien-muke/learn-terraform-aws-asg) for this tutorial, which contains configuration for an Auto Scaling group.
 
-Create an empty project directory and create a file called `main.tf` within it.
+```bash
+git clone https://github.com/julien-muke/learn-terraform-aws-asg.git
+```
 
-Firstly we need to add information about the provider (Here, we will be using AWS Provider). We will also configure AWS credentials, so we could provision resources in the AWS cloud.
+Change into the repository directory.
+
+```bash
+cd learn-terraform-aws-asg
+```
+
+## Review configuration
+
+In your code editor, open the `main.tf` file to review the configuration in this repository.
+
+This configuration uses the vpc module to create a new VPC with public subnets for you to provision the rest of the resources in. The other resources reference the VPC module's outputs. For example, the `aws_lb_target_group` resource references the VPC ID. 
 
 <details>
 <summary><code>main.tf</code></summary>
 
 ```bash
-# terraform apply -var-file="app.tfvars" -var="createdby=e2esa"
+# Copyright (c) HashiCorp, Inc.
+# SPDX-License-Identifier: MPL-2.0
 
-locals {
-  tags = {
-    Project     = var.project
-    createdby   = var.createdby
-    CreatedOn   = timestamp()
-    Environment = terraform.workspace
+provider "aws" {
+  region = "us-east-2"
+
+  default_tags {
+    tags = {
+      hashicorp-learn = "aws-asg"
+    }
   }
 }
 
-module "aws_lb" {
-  source = "../../modules/e2esa-module-aws-elb"
-  #source             = "git::https://github.com/e2eSolutionArchitect/terraform.git//providers/aws/modules/e2esa-module-aws-elb?ref=main"
-  name                       = var.project
-  internal                   = var.lb_internal
-  load_balancer_type         = var.lb_load_balancer_type
-  security_groups            = var.lb_security_groups
-  subnets                    = var.lb_subnets
-  enable_deletion_protection = var.lb_enable_deletion_protection
+data "aws_availability_zones" "available" {
+  state = "available"
+}
 
-  lb_target_port = var.lb_target_port
-  lb_protocol    = var.lb_protocol
-  lb_target_type = var.lb_target_type
-  vpc_id         = var.vpc_id
+module "vpc" {
+  source  = "terraform-aws-modules/vpc/aws"
+  version = "2.77.0"
 
-  lb_listener_port     = var.lb_listener_port
-  lb_listener_protocol = var.lb_listener_protocol
+  name = "main-vpc"
+  cidr = "10.0.0.0/16"
 
-  tags = local.tags
+  azs                  = data.aws_availability_zones.available.names
+  public_subnets       = ["10.0.4.0/24", "10.0.5.0/24", "10.0.6.0/24"]
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+}
+
+data "aws_ami" "amazon-linux" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["amzn-ami-hvm-*-x86_64-ebs"]
+  }
+}
+
+resource "aws_launch_configuration" "terramino" {
+  name_prefix     = "learn-terraform-aws-asg-"
+  image_id        = data.aws_ami.amazon-linux.id
+  instance_type   = "t2.micro"
+  user_data       = file("user-data.sh")
+  security_groups = [aws_security_group.terramino_instance.id]
+
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+resource "aws_autoscaling_group" "terramino" {
+  name                 = "terramino"
+  min_size             = 1
+  max_size             = 3
+  desired_capacity     = 1
+  launch_configuration = aws_launch_configuration.terramino.name
+  vpc_zone_identifier  = module.vpc.public_subnets
+
+  health_check_type    = "ELB"
+
+  tag {
+    key                 = "Name"
+    value               = "HashiCorp Learn ASG - Terramino"
+    propagate_at_launch = true
+  }
+}
+
+resource "aws_lb" "terramino" {
+  name               = "learn-asg-terramino-lb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.terramino_lb.id]
+  subnets            = module.vpc.public_subnets
+}
+
+resource "aws_lb_listener" "terramino" {
+  load_balancer_arn = aws_lb.terramino.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.terramino.arn
+  }
+}
+
+resource "aws_lb_target_group" "terramino" {
+  name     = "learn-asg-terramino"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = module.vpc.vpc_id
+}
+
+
+resource "aws_autoscaling_attachment" "terramino" {
+  autoscaling_group_name = aws_autoscaling_group.terramino.id
+  alb_target_group_arn   = aws_lb_target_group.terramino.arn
+}
+
+resource "aws_security_group" "terramino_instance" {
+  name = "learn-asg-terramino-instance"
+  ingress {
+    from_port       = 80
+    to_port         = 80
+    protocol        = "tcp"
+    security_groups = [aws_security_group.terramino_lb.id]
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  vpc_id = module.vpc.vpc_id
+}
+
+resource "aws_security_group" "terramino_lb" {
+  name = "learn-asg-terramino-lb"
+  ingress {
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  vpc_id = module.vpc.vpc_id
 }
 ```
 </details>
