@@ -225,3 +225,28 @@ This configuration specifies:
 * `user_data` a user data script, which configures the instances to run the user-data.sh file in this repository at launch time. The user data script installs dependencies and initializes Terramino, a Terraform-skinned Tetris application. 
 
 * `security_groups` a security group to associate with the instances. The security group (defined later in this file) allows ingress traffic on port 80 and egress traffic to all endpoints.
+
+## Auto Scaling group
+
+An ASG is a logical grouping of EC2 instances running the same configuration. ASGs allow for dynamic scaling and make it easier to manage a group of instances that host the same services. 
+
+![3](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/dbae640b-1856-40f7-a907-44e5a732ef07)
+
+
+This ASG configuration sets:
+
+* the minimum and maximum number of instances allowed in the group.
+
+* the desired count to `launch desired_capacity`.
+
+* a launch configuration to use for each instance in the group.
+
+* a list of subnets where the ASGs will launch new instances. This configuration references the public subnets created by the `vpc` module.
+
+## Load balancer resources
+
+Since you will launch multiple instances running your Terramino application, you must provision a load balancer to distribute traffic across the instances. 
+
+The `aws_lb` resource creates an application load balancer, which routes traffic at the application layer.
+
+![4](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/5fa10b1f-5bec-4ef4-9998-4777708c2336)
