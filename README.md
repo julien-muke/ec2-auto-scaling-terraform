@@ -281,3 +281,4 @@ In your terminal, initialize your configuration by running the following command
 terraform init
 ```
 
+![8](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/076d1f9e-aebe-4319-9263-7be0f174c1e8)
