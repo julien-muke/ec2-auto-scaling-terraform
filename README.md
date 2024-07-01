@@ -54,8 +54,6 @@ cd learn-terraform-aws-asg
 
 In your code editor, open the `main.tf` file to review the configuration in this repository.
 
-This configuration uses the vpc module to create a new VPC with public subnets for you to provision the rest of the resources in. The other resources reference the VPC module's outputs. For example, the `aws_lb_target_group` resource references the VPC ID. 
-
 <details>
 <summary><code>main.tf</code></summary>
 
@@ -202,6 +200,28 @@ resource "aws_security_group" "terramino_lb" {
 </details>
 
 
+This configuration uses the vpc module to create a new VPC with public subnets for you to provision the rest of the resources in. The other resources reference the VPC module's outputs. For example, the `aws_lb_target_group` resource references the VPC ID. 
+
+![1](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/1c906a25-917d-4ef8-864a-d3c37851c01c)
 
 
+## EC2 Launch Template
 
+A launch template specifies the EC2 instance configuration that an ASG will use to launch each new instance. 
+
+![2](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/3313785d-3149-42d0-a793-c81d8afc43b7)
+
+
+Launch configurations support many arguments and customization options for your instances.
+
+This configuration specifies:
+
+* `name_prefix` a name prefix to use for all versions of this launch configuration. Terraform will append a unique identifier to the prefix for each launch configuration created.
+
+* ` image_id` an Amazon Linux AMI specified by a data source.
+
+* `instance_type` an instance type.
+
+* `user_data` a user data script, which configures the instances to run the user-data.sh file in this repository at launch time. The user data script installs dependencies and initializes Terramino, a Terraform-skinned Tetris application. 
+
+* `security_groups` a security group to associate with the instances. The security group (defined later in this file) allows ingress traffic on port 80 and egress traffic to all endpoints.
