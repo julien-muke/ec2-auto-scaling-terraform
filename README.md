@@ -62,7 +62,7 @@ In your code editor, open the `main.tf` file to review the configuration in this
 # SPDX-License-Identifier: MPL-2.0
 
 provider "aws" {
-  region = "us-east-2"
+  region = "us-east-1"
 
   default_tags {
     tags = {
@@ -250,3 +250,34 @@ Since you will launch multiple instances running your Terramino application, you
 The `aws_lb` resource creates an application load balancer, which routes traffic at the application layer.
 
 ![4](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/5fa10b1f-5bec-4ef4-9998-4777708c2336)
+
+
+The `aws_lb_listener` resource specifies how to handle any HTTP requests to port 80. In this case, it forwards all requests to the load balancer to a target group. You can define multiple listeners with distinct listener rules for more complex traffic routing. 
+
+![5](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/ca575d1e-8f54-439a-92fd-70fd354a6382)
+
+
+A target group defines the collection of instances your load balancer sends traffic to. It does not manage the configuration of the targets in that group directly, but instead specifies a list of destinations the load balancer can forward requests to. 
+
+
+![6](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/db2b49de-7492-40ad-aa35-208901e8a919)
+
+
+While you can use an `aws_lb_target_group_attachment` resource to directly associate an EC2 instance or other target type with the target group, the dynamic nature of instances in an ASG makes that hard to maintain in configuration. Instead, this configuration links your Auto Scaling group with the target group using the `aws_autoscaling_attachment` resource. This allows AWS to automatically add and remove instances from the target group over their lifecycle. 
+
+## Security groups
+
+This configuration also defines two security groups: one to associate with your ASG EC2 instances, and another for the load balancer.
+
+![7](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/153a6e3e-00b3-43c8-af99-8d3cf01899c2)
+
+Both of these security groups allow ingress HTTP traffic on port 80 and all outbound traffic. However, the aws_security_group.terramino_instance` group restricts inbound traffic to requests coming from any source associated with the `aws_security_group.terramino_lb` security group, ensuring that only requests forwarded from your load balancer will reach your instances. 
+
+## Apply configuration
+
+In your terminal, initialize your configuration by running the following command:
+
+```bash
+terraform init
+```
+
