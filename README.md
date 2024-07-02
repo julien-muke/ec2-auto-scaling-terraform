@@ -58,7 +58,7 @@ In your terminal, initialize your configuration by running the following command
 terraform init
 ```
 
-![8](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/076d1f9e-aebe-4319-9263-7be0f174c1e8)
+![8](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/b25cb8d0-4bab-420e-8cdf-00a005265baa)
 
 
 ## Review configuration
@@ -88,4 +88,21 @@ provider "aws" {
 ```
 </details>
 
+Here's a breakdown of what the code does:
+
+* `terraform` specifies the required provider and its version for Terraform to work with AWS resources.
+
+* `hashicorp/aws` is the source for the AWS provider, which is an official provider maintained by HashiCorp.
+
+* `version = "~> 5.0"` specifies that the AWS provider version should be within the 5.x range, allowing for minor updates but not major version changes.
+
+* `provider "aws"` configures the AWS provider itself.
+
+* `region = "us-east-1"` sets the AWS region to "us-east-1", which is the Northern Virginia region.
+
+Terraform to use the AWS provider (a plugin that allows Terraform to interact with AWS resources) and sets the region to Northern Virginia. This configuration is necessary for Terraform to manage AWS resources, such as EC2 instances, S3 buckets, or Auto Scaling groups, within the specified region.
+
+It's important to note that while this code sets the default region, Terraform can still manage resources across multiple regions by specifying the region within individual resource blocks.
+
+Overall, this code serves as the initial setup for using Terraform to provision and manage AWS resources, ensuring that Terraform has the necessary provider and region configuration to interact with the AWS API.
 
