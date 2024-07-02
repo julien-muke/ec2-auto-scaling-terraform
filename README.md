@@ -142,11 +142,11 @@ This code creates a VPC with two public subnets (one in each of the `us-east-1a`
 
 This step is to allow internet access for the public subnets in the VPC.
 
-In your code editor, open the `gateways-public` file to review the configuration.
+In your code editor, open the `gateways-public.tf` file to review the configuration.
 
 
 <details>
-<summary><code>main.tf</code></summary>
+<summary><code>gateways-public.tf</code></summary>
 
 ```bash
 # Internet Gateway

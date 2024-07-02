@@ -10,8 +10,8 @@ resource "aws_eip" "jm_eip" {
 # NAT gateway for private subnets 
 # (for the private subnet to access internet - eg. ec2 instances downloading softwares from internet)
 resource "aws_nat_gateway" "jm_nat_for_private_subnet" {
-  allocation_id = aws_eip.sh_eip.id
-  subnet_id     = aws_subnet.jm_subnet_1.id # nat should be in public subnet
+  allocation_id = aws_eip.jm_eip.id
+  subnet_id     = aws_subnet.jm_subnet_1a.id # nat should be in public subnet
 
   tags = {
     Name = "jm NAT for private subnet"
