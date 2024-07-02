@@ -63,6 +63,8 @@ terraform init
 
 ## Review configuration
 
+1. Initial setup for using Terraform
+
 In your code editor, open the `main.tf` file to review the configuration in this repository.
 
 <details>
@@ -80,10 +82,7 @@ terraform {
 
 # Configure the AWS Provider
 provider "aws" {
-  region                   = "us-east-1"
-  shared_config_files      = ["/Path/to/.aws/config"]
-  shared_credentials_files = ["/Path/to/.aws/credentials"]
-  profile                  = "PROFILE"
+  region = "us-east-1"
 }
 ```
 </details>
@@ -106,3 +105,68 @@ It's important to note that while this code sets the default region, Terraform c
 
 Overall, this code serves as the initial setup for using Terraform to provision and manage AWS resources, ensuring that Terraform has the necessary provider and region configuration to interact with the AWS API.
 
+2. Define resources in Terraform for creating a VPC and subnets on AWS.
+
+
+<details>
+<summary><code>vpc-with-subnets.ft</code></summary>
+
+```bash
+# VPC
+resource "aws_vpc" "jm_main" {
+  cidr_block = "10.0.0.0/23" # 512 IPs 
+  tags = {
+    Name = "jm-vpc"
+  }
+}
+
+# Creating 1st public subnet 
+resource "aws_subnet" "jm_subnet_1a" {
+  vpc_id                  = aws_vpc.jm_main.id
+  cidr_block              = "10.0.0.0/27" #32 IPs
+  map_public_ip_on_launch = true          # public subnet
+  availability_zone       = "us-east-1a"
+}
+
+# Creating 2nd public subnet 
+resource "aws_subnet" "jm_subnet_1b" {
+  vpc_id                  = aws_vpc.jm_main.id
+  cidr_block              = "10.0.0.32/27" #32 IPs
+  map_public_ip_on_launch = true           # public subnet
+  availability_zone       = "us-east-1b"
+}
+
+# Creating 1st private subnet 
+resource "aws_subnet" "jm_subnet_2" {
+  vpc_id                  = aws_vpc.jm_main.id
+  cidr_block              = "10.0.1.0/27" #32 IPs
+  map_public_ip_on_launch = false         # private subnet
+  availability_zone       = "us-east-1b"
+}
+```
+</details>
+
+Here's a breakdown of what the code does:
+
+A. VPC Creation:
+* The `aws_vpc` resource creates a new VPC named `jm_main`.
+* The `cidr_block` attribute specifies the IP address range for the VPC, which is set to "10 0.0.0/23" (512 IP addresses).
+* A tag with the key `Name` and value `jm-vpc` is assigned to the VPC for identification purposes.
+
+B. Public Subnet Creation
+* The `aws_subnet` resources create two public subnets within the VPC.
+* The first public subnet, `jm_subnet_1a`, is created with the following properties:
+- It is associated with the `jm_main` VPC using the `vpc_id` attribute.
+- The `cidr_block` attribute specifies the IP address range for the subnet, which is set to "10.0.0.0/27" (32 IP addresses).
+- The `map_public_ip_on_launch` attribute is set to true, which means that instances launched in this subnet will automatically receive a public IP address.
+- The `availability_zone` attribute specifies the Availability Zone where the subnet will be created, which is set to `us-east-1a`.
+* The second public subnet, `jm_subnet_1b`, is created with similar properties but in a different Availability Zone `us-east-1b` and with a different IP address range ("10.0.0.32/27").
+
+C. Private Subnet Creation
+* The `aws_subnet` resource creates a private subnet named `jm_subnet_2`.
+* It is associated with the `jm_main` VPC using the `vpc_id` attribute.
+* The `cidr_block` attribute specifies the IP address range for the subnet, which is set to "10.0.1.0/27" (32 IP addresses).
+* The `map_public_ip_on_launch` attribute is set to false, which means that instances launched in this subnet will not receive a public IP address.
+* The `availability_zone` attribute specifies the Availability Zone where the subnet will be created, which is set to `us-east-1b`.
+
+In summary, this code creates a VPC with two public subnets (one in each of the us-east-1a and us-east-1b Availability Zones) and one private subnet in the us-east-1b Availability Zone. This setup is commonly used for hosting web applications, where the public subnets are used for internet-facing resources (e.g., load balancers, web servers), and the private subnet is used for resources that should not be directly accessible from the internet (e.g., databases, internal services).
