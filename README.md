@@ -137,3 +137,46 @@ resource "aws_subnet" "jm_subnet_2" {
 </details>
 
 This code creates a VPC with two public subnets (one in each of the `us-east-1a` and `us-east-1b` Availability Zones) and one private subnet in the `us-east-1b` Availability Zone. This setup is commonly used for hosting web applications, where the public subnets are used for internet-facing resources (e.g., load balancers, web servers), and the private subnet is used for resources that should not be directly accessible from the internet (e.g., databases, internal services).
+
+## 3. Creating an Internet Gateway and configuring routing tables
+
+This step is to allow internet access for the public subnets in the VPC.
+
+In your code editor, open the `gateways-public` file to review the configuration.
+
+
+<details>
+<summary><code>main.tf</code></summary>
+
+```bash
+# Internet Gateway
+resource "aws_internet_gateway" "jm_gw" {
+  vpc_id = aws_vpc.jm_main.id
+}
+
+# route table for public subnet - connecting to Internet gateway
+resource "aws_route_table" "jm_rt_public" {
+  vpc_id = aws_vpc.jm_main.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.jm_gw.id
+  }
+}
+
+# associate the route table with public subnet 1
+resource "aws_route_table_association" "jm_rta1" {
+  subnet_id      = aws_subnet.jm_subnet_1a.id
+  route_table_id = aws_route_table.jm_rt_public.id
+}
+# associate the route table with public subnet 2
+resource "aws_route_table_association" "jm_rta2" {
+  subnet_id      = aws_subnet.jm_subnet_1b.id
+  route_table_id = aws_route_table.jm_rt_public.id
+}
+```
+</details>
+
+By creating an Internet Gateway and associating it with a route table that has a route to the internet (0.0.0.0/0), instances launched in the public subnets `jm_subnet_1a` and  `jm_subnet_1b` will have internet access. This is a common setup for hosting web applications, where the public subnets contain internet-facing resources like load balancers and web servers.
+
+The private subnet `jm_subnet_2` is not associated with this route table, so instances launched in that subnet will not have direct internet access. This is often desirable for resources like databases or internal services that should not be directly accessible from the internet.
