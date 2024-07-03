@@ -479,24 +479,85 @@ Now, apply the configuration to create the VPC and networking resources, Auto Sc
 
 ## Add scaling policy
 
-You can scale the number of instances in your ASG manually as you did earlier in this tutorial. This allows you to easily launch more instances running the same configuration, but requires you to monitor your infrastructure to understand when to modify capacity.
+This configuration sets up a scaling policy that will scale out the Auto Scaling group by adding one instance when the average CPU utilization across the group exceeds 80%, and scale in by removing one instance when the average CPU utilization drops below 20%. The CloudWatch alarms monitor the CPU utilization metric and trigger the respective scaling policies when the thresholds are breached.
 
-Auto Scaling groups also support automated scaling events, which you can implement using Terraform. You can scale instances on a schedule – for example, if certain services receive less traffic overnight, you can use the aws_autoscaling_schedule resource to scale accordingly.
-
-Alternatively, you can trigger scaling events in response to metric thresholds or other benchmarks. 
+Note that you may need to adjust the thresholds, evaluation periods, and other settings based on your specific requirements and workload patterns.
 
 Open your `autoscaling_policy.tf` file and paste in the following configuration for an automated scaling policy and Cloud Watch metric alarm.
 
-![Screenshot 2024-07-03 at 18 36 14](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/db61674b-e7cc-429b-9f0f-1eaf532899e7)
+<details>
+<summary><code>autoscaling_policy.tf</code></summary>
 
+```bash
+# Step Scaling Policy for Scale Out
+resource "aws_autoscaling_policy" "jm_asg_scale_out_policy" {
+  name                      = "jm-asg-scale-out-policy"
+  autoscaling_group_name    = aws_autoscaling_group.jm_asg.name
+  adjustment_type           = "ChangeInCapacity"
+  policy_type               = "StepScaling"
+  estimated_instance_warmup = 300 # 5 minutes
 
-This policy configures your Auto Scaling group to destroy a member of the ASG if the EC2 instances in your group use less than 10% CPU over 2 consecutive evaluation periods of 2 minutes. This type of policy would allow you to optimize costs.
+  step_adjustment {
+    metric_interval_lower_bound = 0
+    scaling_adjustment          = 1
+  }
+}
 
-Apply the configuration to create the metric alarm and scaling policy. Respond yes to the prompt to confirm the operation. 
+# CloudWatch Metric Alarm for Scale Out
+resource "aws_cloudwatch_metric_alarm" "jm_asg_scale_out_alarm" {
+  alarm_name          = "jm-asg-scale-out-alarm"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120" # 2 minutes
+  statistic           = "Average"
+  threshold           = "80"
 
-Given the lightweight application you are running in this group, AWS will remove one of the 2 instances you scaled up to. Monitor your ASG's instance count in the AWS console for a few minutes to observe the change.
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.jm_asg.name
+  }
 
-AWS will not continue to scale down your instances, since you set a minimum capacity for the group of 1 instance. 
+  alarm_description = "This metric monitors EC2 CPU utilization for scale out"
+  alarm_actions     = [aws_autoscaling_policy.jm_asg_scale_out_policy.arn]
+}
+
+# Step Scaling Policy for Scale In
+resource "aws_autoscaling_policy" "jm_asg_scale_in_policy" {
+  name                      = "jm-asg-scale-in-policy"
+  autoscaling_group_name    = aws_autoscaling_group.jm_asg.name
+  adjustment_type           = "ChangeInCapacity"
+  policy_type               = "StepScaling"
+  estimated_instance_warmup = 300 # 5 minutes
+
+  step_adjustment {
+    metric_interval_upper_bound = 0
+    scaling_adjustment          = -1
+  }
+}
+
+# CloudWatch Metric Alarm for Scale In
+resource "aws_cloudwatch_metric_alarm" "jm_asg_scale_in_alarm" {
+  alarm_name          = "jm-asg-scale-in-alarm"
+  comparison_operator = "LessThanOrEqualToThreshold"
+  evaluation_periods  = "2"
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = "120" # 2 minutes
+  statistic           = "Average"
+  threshold           = "20"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.jm_asg.name
+  }
+
+  alarm_description = "This metric monitors EC2 CPU utilization for scale in"
+  alarm_actions     = [aws_autoscaling_policy.jm_asg_scale_in_policy.arn]
+}
+
+```
+</details>
+
 
 ## Destroy configuration
 
