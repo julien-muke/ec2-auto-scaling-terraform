@@ -477,5 +477,31 @@ Now, apply the configuration to create the VPC and networking resources, Auto Sc
 ![g](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/ba5f62f7-cc0d-4c6b-b256-f5e7e031dfbd)
 
 
+## Add scaling policy
+
+You can scale the number of instances in your ASG manually as you did earlier in this tutorial. This allows you to easily launch more instances running the same configuration, but requires you to monitor your infrastructure to understand when to modify capacity.
+
+Auto Scaling groups also support automated scaling events, which you can implement using Terraform. You can scale instances on a schedule – for example, if certain services receive less traffic overnight, you can use the aws_autoscaling_schedule resource to scale accordingly.
+
+Alternatively, you can trigger scaling events in response to metric thresholds or other benchmarks. 
+
+Open your `autoscaling_policy.tf` file and paste in the following configuration for an automated scaling policy and Cloud Watch metric alarm.
+
+![Screenshot 2024-07-03 at 18 36 14](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/db61674b-e7cc-429b-9f0f-1eaf532899e7)
 
 
+This policy configures your Auto Scaling group to destroy a member of the ASG if the EC2 instances in your group use less than 10% CPU over 2 consecutive evaluation periods of 2 minutes. This type of policy would allow you to optimize costs.
+
+Apply the configuration to create the metric alarm and scaling policy. Respond yes to the prompt to confirm the operation. 
+
+Given the lightweight application you are running in this group, AWS will remove one of the 2 instances you scaled up to. Monitor your ASG's instance count in the AWS console for a few minutes to observe the change.
+
+AWS will not continue to scale down your instances, since you set a minimum capacity for the group of 1 instance. 
+
+## Destroy configuration
+
+Now that you have completed this tutorial, destroy the AWS resources you provisioned to avoid incurring unnecessary costs. Respond `yes` to the prompt to confirm the operation. 
+
+```bash
+terraform destroy
+```
