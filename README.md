@@ -183,6 +183,8 @@ The private subnet `jm_subnet_2` is not associated with this route table, so ins
 
 ## 4. Create Gateway for Private Subnet
 
+This code snippet is used to configure networking resources in an AWS environment using Terraform.
+
 In your code editor, open the `gateways-private.tf` file to review the configuration.
 
 <details>
@@ -233,5 +235,46 @@ This code sets up a NAT Gateway with an Elastic IP address in a public subnet. I
 
 This setup is commonly used in AWS to provide internet access to resources that need to remain isolated in private subnets, such as databases or internal applications, while still allowing them to download updates or access external services.
 
-## 5. 
+## 5. Configuring the Load Balancer
+
+This code snippet is used to configure an Application Load Balancer (ALB) and a Target Group in AWS environment using Terraform.
+
+In your code editor, open the `lb-with-targetGroup.tf` file to review the configuration.
+
+<details>
+<summary><code>lb-with-targetGroup.tf</code></summary>
+
+```bash
+resource "aws_lb" "jm_lb" {
+  name               = "jm-lb-asg"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.jm_sg_for_elb.id]
+  subnets            = [aws_subnet.jm_subnet_1a.id, aws_subnet.jm_subnet_1b.id]
+  depends_on         = [aws_internet_gateway.jm_gw]
+}
+
+resource "aws_lb_target_group" "jm_alb_tg" {
+  name     = "jm-tf-lb-alb-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.jm_main.id
+}
+
+resource "aws_lb_listener" "jm_front_end" {
+  load_balancer_arn = aws_lb.jm_lb.arn
+  port              = "80"
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.jm_alb_tg.arn
+  }
+}
+```
+</details>
+
+This code sets up an Application Load Balancer that acts as a single point of entry for incoming traffic. It also creates a Target Group, which is a logical group of resources (e.g: EC2 instances) that will receive the traffic forwarded by the Load Balancer. The Listener is configured to forward incoming HTTP traffic on port 80 to the Target Group.
+
+This setup is commonly used in AWS to distribute incoming traffic across multiple resources (e.g: EC2 instances) for better availability, fault tolerance, and scalability. The Load Balancer acts as a single point of entry, while the Target Group manages the registered targets that will handle the actual traffic.
+
 
