@@ -483,10 +483,10 @@ This configuration sets up a scaling policy that will scale out the Auto Scaling
 
 Note that you may need to adjust the thresholds, evaluation periods, and other settings based on your specific requirements and workload patterns.
 
-Open your `autoscaling_policy.tf` file and paste in the following configuration for an automated scaling policy and Cloud Watch metric alarm.
+Open your `autoscaling_policy_cloudwatch.tf` file and paste in the following configuration for an automated scaling policy and Cloud Watch metric alarm.
 
 <details>
-<summary><code>autoscaling_policy.tf</code></summary>
+<summary><code>autoscaling_policy_cloudwatch.tf</code></summary>
 
 ```bash
 # Step Scaling Policy for Scale Out
