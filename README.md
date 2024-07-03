@@ -244,7 +244,7 @@ In your code editor, open the `lb-with-targetGroup.tf` file to review the config
 <details>
 <summary><code>lb-with-targetGroup.tf</code></summary>
 
-```json
+```bash
 resource "aws_lb" "jm_lb" {
   name               = "jm-lb-asg"
   internal           = false
@@ -279,4 +279,171 @@ This setup is commonly used in AWS to distribute incoming traffic across multipl
 
 
 ## 6. Creating the Auto Scaling Group
+
+This code snippet is used to define resources in Terraform for creating an Auto Scaling Group (ASG) and a Launch Template in AWS.
+
+In your code editor, open the `ec2-with-asg.tf` file to review the configuration.
+
+<details>
+<summary><code>main.tf</code></summary>
+
+```bash
+# ASG with Launch template
+resource "aws_launch_template" "jm_ec2_launch_templ" {
+  name_prefix   = "sh_ec2_launch_templ"
+  image_id      = "ami-06c68f701d8090592" # To note: AMI is specific for each region
+  instance_type = "t2.micro"
+  user_data     = filebase64("user_data.sh")
+
+  network_interfaces {
+    associate_public_ip_address = false
+    subnet_id                   = aws_subnet.jm_subnet_2.id
+    security_groups             = [aws_security_group.jm_sg_for_ec2.id]
+  }
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "jm-instance" # Name for the EC2 instances
+    }
+  }
+}
+
+resource "aws_autoscaling_group" "jm_asg" {
+  # no of instances
+  desired_capacity = 1
+  max_size         = 1
+  min_size         = 1
+
+  # Connect to the target group
+  target_group_arns = [aws_lb_target_group.jm_alb_tg.arn]
+
+  vpc_zone_identifier = [ # Creating EC2 instances in private subnet
+    aws_subnet.jm_subnet_2.id
+  ]
+
+  launch_template {
+    id      = aws_launch_template.jm_ec2_launch_templ.id
+    version = "$Latest"
+  }
+}
+```
+</details>
+
+
+This code sets up an Auto Scaling Group that will automatically maintain a single EC2 instance with a specific configuration (defined by the Launch Template). The instance will be launched in a private subnet, associated with a security group, and connected to a load balancer target group.
+
+The Launch Template acts as a blueprint for the EC2 instances, specifying details like the Amazon Machine Image, instance type, network settings, and user data script to run during launch. The Auto Scaling Group ensures that there is always one instance running with the specified configuration, automatically replacing instances if they become unhealthy or are terminated.
+
+## 7. User data file to run Web server
+
+This script updates the system packages, installs the Apache HTTP Server, starts and enables the Apache service, and creates a simple "Hello World" HTML page that displays the system's hostname. This script is likely intended to set up a basic Apache web server on the system it is executed on.
+
+
+<details>
+<summary><code>user_data.sh</code></summary>
+
+```bash
+#!/bin/bash
+sudo yum update -y
+sudo yum install -y httpd
+sudo systemctl start httpd
+sudo systemctl enable httpd
+echo "<h1>Hello World from $(hostname -f)</h1>" > /var/www/html/index.html
+```
+</details>
+
+## 8. Security access rules for EC2 and Load Balancer
+
+The provided code snippet defines two security groups in AWS using Terraform.
+
+In your code editor, open the `sg.tf` file to review the configuration.
+
+<details>
+<summary><code>user_data.sh</code></summary>
+
+```bash
+resource "aws_security_group" "jm_sg_for_elb" {
+  name   = "jm-sg_for_elb"
+  vpc_id = aws_vpc.jm_main.id
+  
+  ingress {
+    description      = "Allow http request from anywhere"
+    protocol         = "tcp"
+    from_port        = 80
+    to_port          = 80
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+  
+  ingress {
+    description      = "Allow https request from anywhere"
+    protocol         = "tcp"
+    from_port        = 443
+    to_port          = 443
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+}
+
+resource "aws_security_group" "jm_sg_for_ec2" {
+  name   = "jm-sg_for_ec2"
+  vpc_id = aws_vpc.jm_main.id
+
+  ingress {
+    description     = "Allow http request from Load Balancer"
+    protocol        = "tcp"
+    from_port       = 80 # range of
+    to_port         = 80 # port numbers
+    security_groups = [aws_security_group.jm_sg_for_elb.id]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+```
+</details>
+
+This code defines two security groups: one for the Elastic Load Balancer (ELB) that allows incoming HTTP and HTTPS traffic from anywhere, and another for the EC2 instances that only allows incoming HTTP traffic from the ELB security group. This setup is commonly used in web applications where the ELB distributes traffic to the EC2 instances, and the instances are not directly accessible from the internet.
+
+## 9. Apply configuration
+
+Let’s look at the terraform commands that we would be needing every time we deploy any changes.
+
+* The terraform fmt command is used to rewrite Terraform configuration files to a canonical format and style.
+
+```bash
+terraform fmt
+```
+
+* The validate command in Terraform is used to verify the correctness of Terraform configuration files.
+
+```bash
+terraform validate
+```
+
+* The terraform plan command creates an execution plan, which lets you preview the changes that Terraform plans to make to your infrastructure.
+
+```bash
+terraform plan
+```
+
+* The terraform apply command executes the actions proposed in a Terraform plan to create, update, or destroy infrastructure.
+
+```bash
+terraform apply
+```
+
+Now, apply the configuration to create the VPC and networking resources, Auto Scaling group, launch configuration, load balancer, and target group. Respond `yes` to the prompt to confirm the operation.
 
