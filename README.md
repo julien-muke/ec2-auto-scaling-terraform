@@ -244,7 +244,7 @@ In your code editor, open the `lb-with-targetGroup.tf` file to review the config
 <details>
 <summary><code>lb-with-targetGroup.tf</code></summary>
 
-```bash
+```json
 resource "aws_lb" "jm_lb" {
   name               = "jm-lb-asg"
   internal           = false
@@ -277,4 +277,6 @@ This code sets up an Application Load Balancer that acts as a single point of en
 
 This setup is commonly used in AWS to distribute incoming traffic across multiple resources (e.g: EC2 instances) for better availability, fault tolerance, and scalability. The Load Balancer acts as a single point of entry, while the Target Group manages the registered targets that will handle the actual traffic.
 
+
+## 6. Creating the Auto Scaling Group
 
