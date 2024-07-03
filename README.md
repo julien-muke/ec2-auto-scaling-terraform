@@ -558,6 +558,7 @@ resource "aws_cloudwatch_metric_alarm" "jm_asg_scale_in_alarm" {
 ```
 </details>
 
+Apply the configuration to create the metric alarm and scaling policy. Respond yes to the prompt to confirm the operation.
 
 ## Destroy configuration
 
