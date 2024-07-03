@@ -359,7 +359,7 @@ The provided code snippet defines two security groups in AWS using Terraform.
 In your code editor, open the `sg.tf` file to review the configuration.
 
 <details>
-<summary><code>user_data.sh</code></summary>
+<summary><code>sg.tf</code></summary>
 
 ```bash
 resource "aws_security_group" "jm_sg_for_elb" {
@@ -446,4 +446,36 @@ terraform apply
 ```
 
 Now, apply the configuration to create the VPC and networking resources, Auto Scaling group, launch configuration, load balancer, and target group. Respond `yes` to the prompt to confirm the operation.
+
+After the changes are deployed:
+
+* Go to AWS Console and sign in.
+* In the navigation pane, choose EC2 instance.
+
+![b](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/f01d1f1f-6b23-4eb9-95ac-c1c2d659fcfd)
+
+* In the navigation pane, choose VPC.
+
+![h](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/6c9c7f8c-aa48-4505-994d-f18e6b515c48)
+
+
+* In the navigation pane, choose subnet.
+
+![e](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/60e1e6be-b96d-4072-b8e4-96771894ab95)
+
+* In the navigation pane, choose security group.
+
+![i](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/1cb233a6-cfc3-4f05-928b-50bd563aed92)
+
+* In the navigation pane, choose  Load Balancer.
+* Under EC2 service select the load balancer that we created and copy the DNS name.
+
+![f](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/b49b38a0-73fa-47c5-804b-6ae1fd5acbea)
+
+* Open your browser and paste the URL
+
+![g](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/ba5f62f7-cc0d-4c6b-b256-f5e7e031dfbd)
+
+
+
 
