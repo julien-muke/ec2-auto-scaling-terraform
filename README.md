@@ -285,7 +285,7 @@ This code snippet is used to define resources in Terraform for creating an Auto 
 In your code editor, open the `ec2-with-asg.tf` file to review the configuration.
 
 <details>
-<summary><code>main.tf</code></summary>
+<summary><code>ec2-with-asg.tf</code></summary>
 
 ```bash
 # ASG with Launch template
@@ -447,9 +447,9 @@ terraform apply
 
 Now, apply the configuration to create the VPC and networking resources, Auto Scaling group, launch configuration, load balancer, and target group. Respond `yes` to the prompt to confirm the operation.
 
-After the changes are deployed:
+## Now, let's check if our resources has been deployed to AWS Cloud.
 
-* Go to AWS Console and sign in.
+* Go to AWS Console and [sign in](https://console.aws.amazon.com/).
 * In the navigation pane, choose EC2 instance.
 
 ![b](https://github.com/julien-muke/ec2-auto-scaling-terraform/assets/110755734/f01d1f1f-6b23-4eb9-95ac-c1c2d659fcfd)
