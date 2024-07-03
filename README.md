@@ -180,3 +180,58 @@ resource "aws_route_table_association" "jm_rta2" {
 By creating an Internet Gateway and associating it with a route table that has a route to the internet (0.0.0.0/0), instances launched in the public subnets `jm_subnet_1a` and  `jm_subnet_1b` will have internet access. This is a common setup for hosting web applications, where the public subnets contain internet-facing resources like load balancers and web servers.
 
 The private subnet `jm_subnet_2` is not associated with this route table, so instances launched in that subnet will not have direct internet access. This is often desirable for resources like databases or internal services that should not be directly accessible from the internet.
+
+## 4. Create Gateway for Private Subnet
+
+In your code editor, open the `gateways-private.tf` file to review the configuration.
+
+<details>
+<summary><code>gateways-private.tf</code></summary>
+
+```bash
+# Elastic IP for NAT gateway
+resource "aws_eip" "jm_eip" {
+  depends_on = [aws_internet_gateway.jm_gw]
+  domain = "vpc"
+  tags = {
+    Name = "jm_EIP_for_NAT"
+  }
+}
+
+# NAT gateway for private subnets 
+# (for the private subnet to access internet - eg. ec2 instances downloading softwares from internet)
+resource "aws_nat_gateway" "jm_nat_for_private_subnet" {
+  allocation_id = aws_eip.jm_eip.id
+  subnet_id     = aws_subnet.jm_subnet_1a.id # nat should be in public subnet
+
+  tags = {
+    Name = "jm NAT for private subnet"
+  }
+
+  depends_on = [aws_internet_gateway.jm_gw]
+}
+
+# route table - connecting to NAT
+resource "aws_route_table" "jm_rt_private" {
+  vpc_id = aws_vpc.jm_main.id
+
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.jm_nat_for_private_subnet.id
+  }
+}
+
+# associate the route table with private subnet
+resource "aws_route_table_association" "jm_rta3" {
+  subnet_id      = aws_subnet.jm_subnet_2.id
+  route_table_id = aws_route_table.jm_rt_private.id
+}
+```
+</details>
+
+This code sets up a NAT Gateway with an Elastic IP address in a public subnet. It then creates a route table for private subnets that routes all internet-bound traffic to the NAT Gateway. Finally, it associates this route table with a private subnet, enabling resources in that subnet to access the internet while remaining private and inaccessible from the internet.
+
+This setup is commonly used in AWS to provide internet access to resources that need to remain isolated in private subnets, such as databases or internal applications, while still allowing them to download updates or access external services.
+
+## 5. 
+
