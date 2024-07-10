@@ -63,6 +63,8 @@ terraform init
 
 ## Review configuration
 
+You can create a new file for each configuration or continue in the same `main.ft` file. (Separating resources into different files makes it easier to understand and maintain the infrastructure).
+
 ## 1. Initial setup for using Terraform
 
 In your code editor, open the `main.tf` file to review the configuration.
@@ -559,6 +561,12 @@ resource "aws_cloudwatch_metric_alarm" "jm_asg_scale_in_alarm" {
 </details>
 
 Apply the configuration to create the metric alarm and scaling policy. Respond `yes` to the prompt to confirm the operation.
+
+## 💡 Conclusion
+
+Deploying an AWS Auto Scaling Group with Terraform streamlines the management and scalability of your cloud infrastructure. By utilizing Terraform’s declarative configuration, you can automate the creation, modification, and scaling of your Auto Scaling Group, ensuring your application can dynamically adjust to varying workloads. 
+
+This approach not only enhances resource efficiency but also simplifies the infrastructure as code (IaC) practice, promoting consistency and repeatability in your deployments. Ultimately, combining Terraform with AWS Auto Scaling empowers your organization to maintain high availability, optimize costs, and achieve greater agility in your cloud operations.
 
 ## Destroy configuration
 
